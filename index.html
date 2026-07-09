@@ -1,11 +1,350 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>gr8ref</title>
+    <title>gr8ref — Edukativne igre za djecu</title>
+    <meta name="description" content="Zabavne i edukativne Android igre za djecu — matematika, geografija, boje i više.">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0f0f1a;
+            --surface: #1a1a2e;
+            --surface2: #16213e;
+            --text: #e8e8f0;
+            --text2: #a8a8c0;
+            --accent1: #ff6b9d;
+            --accent2: #c44dff;
+            --accent3: #4dc9f6;
+            --accent4: #f6cd4d;
+            --accent5: #4df6a8;
+            --grad-hero: linear-gradient(135deg, #0f0f1a 0%, #1a1040 40%, #0d2137 100%);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated background ── */
+        .bg-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-glow.g1 { width: 600px; height: 600px; background: var(--accent2); top: -200px; left: -100px; animation: float1 20s ease-in-out infinite; }
+        .bg-glow.g2 { width: 500px; height: 500px; background: var(--accent3); top: 60%; right: -150px; animation: float2 25s ease-in-out infinite; }
+        .bg-glow.g3 { width: 400px; height: 400px; background: var(--accent1); bottom: -100px; left: 30%; animation: float3 18s ease-in-out infinite; }
+
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(80px, 60px) scale(1.1); }
+            66% { transform: translate(-40px, -30px) scale(0.9); }
+        }
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-60px, -80px) scale(1.15); }
+            66% { transform: translate(30px, 50px) scale(0.85); }
+        }
+        @keyframes float3 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, -50px) scale(1.1); }
+        }
+
+        /* ── Navigation ── */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            background: rgba(15, 15, 26, 0.75);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 0 24px;
+        }
+        .nav-inner {
+            max-width: 1100px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 56px;
+        }
+        .nav-logo { font-weight: 800; font-size: 1.3rem; color: #fff; text-decoration: none; letter-spacing: -0.5px; }
+        .nav-logo span { background: linear-gradient(135deg, var(--accent2), var(--accent1)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 28px; list-style: none; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: #fff; }
+
+        /* ── Hero ── */
+        .hero {
+            position: relative; z-index: 1;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 120px 24px 80px;
+        }
+        .hero-badge {
+            display: inline-block; padding: 6px 16px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px; font-size: 0.8rem; color: var(--accent3);
+            margin-bottom: 24px; letter-spacing: 0.5px;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 900;
+            line-height: 1.1; letter-spacing: -2px; margin-bottom: 20px;
+        }
+        .hero h1 .grad {
+            background: linear-gradient(135deg, var(--accent3), var(--accent2), var(--accent1));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradShift 6s ease-in-out infinite;
+        }
+        @keyframes gradShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.25rem); color: var(--text2);
+            max-width: 560px; margin: 0 auto 36px;
+        }
+        .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 28px; border-radius: 50px; font-weight: 600;
+            font-size: 0.95rem; text-decoration: none; transition: all 0.25s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent2), var(--accent1));
+            color: #fff; box-shadow: 0 4px 24px rgba(196, 77, 255, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(196, 77, 255, 0.45); }
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.2); color: #fff;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.35); }
+
+        /* ── Sections ── */
+        section { position: relative; z-index: 1; padding: 80px 24px; }
+        .section-header { text-align: center; margin-bottom: 56px; }
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 800;
+            letter-spacing: -1px; margin-bottom: 12px;
+        }
+        .section-header p { color: var(--text2); max-width: 500px; margin: 0 auto; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* ── Apps Grid ── */
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .app-card {
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; padding: 32px 28px;
+            transition: all 0.3s; position: relative; overflow: hidden;
+            cursor: default;
+        }
+        .app-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; opacity: 0; transition: opacity 0.3s;
+            border-radius: 20px 20px 0 0;
+        }
+        .app-card:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.14); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .app-card:hover::before { opacity: 1; }
+        .app-card:nth-child(1):hover { border-color: rgba(196, 77, 255, 0.3); } .app-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent2), var(--accent1)); }
+        .app-card:nth-child(2):hover { border-color: rgba(77, 201, 246, 0.3); } .app-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent3), var(--accent4)); }
+        .app-card:nth-child(3):hover { border-color: rgba(77, 246, 168, 0.3); } .app-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent5), var(--accent3)); }
+        .app-card:nth-child(4):hover { border-color: rgba(246, 205, 77, 0.3); } .app-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent4), var(--accent1)); }
+        .app-card:nth-child(5):hover { border-color: rgba(255, 107, 157, 0.3); } .app-card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent1), var(--accent2)); }
+        .app-card:nth-child(6):hover { border-color: rgba(77, 201, 246, 0.3); } .app-card:nth-child(6)::before { background: linear-gradient(90deg, var(--accent3), var(--accent5)); }
+
+        .app-icon {
+            width: 56px; height: 56px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; margin-bottom: 18px;
+        }
+        .app-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+        .app-card .tag {
+            display: inline-block; padding: 2px 10px;
+            background: rgba(255,255,255,0.06); border-radius: 50px;
+            font-size: 0.7rem; font-weight: 600; color: var(--text2);
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+        }
+        .app-card .desc { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 18px; }
+        .app-card .play-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--text2); text-decoration: none; font-size: 0.85rem;
+            font-weight: 500; transition: color 0.2s;
+        }
+        .app-card .play-link:hover { color: #fff; }
+        .app-card .play-link svg { width: 16px; height: 16px; }
+
+        /* ── Stats ── */
+        #about { background: rgba(255,255,255,0.015); border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 24px; text-align: center; }
+        .stat h3 { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--accent3), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat p { color: var(--text2); font-size: 0.85rem; margin-top: 4px; }
+
+        /* ── Footer ── */
+        footer {
+            position: relative; z-index: 1; text-align: center;
+            padding: 40px 24px; color: var(--text2); font-size: 0.85rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        footer a { color: var(--text); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
+        .footer-icons { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
+        .footer-icons a { color: var(--text2); transition: color 0.2s; }
+        .footer-icons a:hover { color: #fff; }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .apps-grid { grid-template-columns: 1fr; }
+            .hero-btns { flex-direction: column; align-items: center; }
+        }
+    </style>
 </head>
 <body>
-    <h1>gr8ref</h1>
+
+<div class="bg-glow g1"></div>
+<div class="bg-glow g2"></div>
+<div class="bg-glow g3"></div>
+
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">🎮 <span>gr8ref</span></a>
+        <ul class="nav-links">
+            <li><a href="#apps">Aplikacije</a></li>
+            <li><a href="#about">O nama</a></li>
+            <li><a href="https://github.com/gr8ref" target="_blank">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<header class="hero">
+    <div>
+        <div class="hero-badge">🚀 Edukativne Android igre</div>
+        <h1>Učenje kroz<br><span class="grad">igru i zabavu</span></h1>
+        <p>Pravimo interaktivne edukativne igre za djecu — matematika, geografija, boje i logičko razmišljanje. Bez reklama tokom igranja, 100% sigurno za djecu.</p>
+        <div class="hero-btns">
+            <a href="#apps" class="btn btn-primary">⬇ Istraži aplikacije</a>
+            <a href="https://play.google.com/store/apps/developer?id=gr8ref" class="btn btn-outline" target="_blank">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5zm16.36-2.2L15.5 13.8l2.12-2.12 3.86 2.21c.68.39.68 1.33 0 1.72l-3.86 2.21-1.26-2.52zM15.5 10.2l3.86-6.45c.68-.39 1.52.1 1.52.89v13.72c0 .79-.84 1.28-1.52.89L15.5 13.8 13.38 12l2.12-1.8z"/></svg>
+                Google Play
+            </a>
+        </div>
+    </div>
+</header>
+
+<section id="apps">
+    <div class="container">
+        <div class="section-header">
+            <h2>📱 Naše aplikacije</h2>
+            <p>Svaka igra je pažljivo osmišljena da djeca uče prirodno — bez pritiska, kroz igru i istraživanje.</p>
+        </div>
+        <div class="apps-grid">
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #c44dff, #ff6b9d);">🧮</div>
+                <div class="tag">Matematika · 6+ god</div>
+                <h3>MathKids</h3>
+                <p class="desc">Zabavna matematika za djecu — sabiranje, oduzimanje, množenje i dijeljenje kroz interaktivne vježbe sa konfetima i nagradama.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.mathkids" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #4dc9f6, #f6cd4d);">➕</div>
+                <div class="tag">Matematika · 5+ god</div>
+                <h3>PlusMinus</h3>
+                <p class="desc">Zabavna matematička igra za sabiranje i oduzimanje brojeva do 100. Jednostavan interfejs, zvučni efekti i vibracije čine učenje uzbudljivim.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.plusminus" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #4df6a8, #4dc9f6);">🍎</div>
+                <div class="tag">Zdravlje · 5+ god</div>
+                <h3>NutriApp</h3>
+                <p class="desc">Učenje o zdravoj ishrani kroz zabavne aktivnosti. Djeca otkrivaju voće, povrće i uravnotežene obroke na interaktivan način.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.nutriapp" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #f6cd4d, #ff6b9d);">🌍</div>
+                <div class="tag">Geografija · 7+ god</div>
+                <h3>GeoPlay</h3>
+                <p class="desc">Edukativna igra geografije Evrope — djeca uče države, zastave i glavne gradove kroz interaktivne mape i kvizove.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.geoplay" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #ff6b9d, #c44dff);">🎨</div>
+                <div class="tag">Boje · 3+ god</div>
+                <h3>ColorBall</h3>
+                <p class="desc">Igra prepoznavanja boja za najmlađe — spajanje loptica istih boja, razvijanje percepcije i motorike kroz jednostavne zadatke.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.colorball" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-icon" style="background: linear-gradient(135deg, #4dc9f6, #4df6a8);">🐣</div>
+                <div class="tag">Logika · 3-5 god</div>
+                <h3>Radoznalko</h3>
+                <p class="desc">Edukativna igrica za najmlađe sa drag&amp;drop mehanikom — razvija logičko razmišljanje, prepoznavanje oblika i koordinaciju pokreta.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.gr8ref.radoznalko" class="play-link" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+                    Google Play
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section id="about">
+    <div class="container">
+        <div class="section-header">
+            <h2>🎯 Zašto gr8ref?</h2>
+            <p>Pravimo igre koje djeca vole, a roditelji im vjeruju.</p>
+        </div>
+        <div class="stats">
+            <div class="stat"><h3>6</h3><p>Edukativnih igara</p></div>
+            <div class="stat"><h3>100%</h3><p>Sigurno za djecu</p></div>
+            <div class="stat"><h3>3-12</h3><p>Godina uzrasta</p></div>
+            <div class="stat"><h3>🇧🇦</h3><p>Made in BiH</p></div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-icons">
+        <a href="https://github.com/gr8ref" target="_blank" title="GitHub">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <a href="https://play.google.com/store/apps/developer?id=gr8ref" target="_blank" title="Google Play">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.8 12 3.84 21.35C3.34 21.11 3 20.59 3 20.5z"/></svg>
+        </a>
+    </div>
+    <p>© 2026 <a href="https://github.com/gr8ref">gr8ref</a> — Edukativne igre za djecu. Sva prava zadržana.</p>
+</footer>
+
 </body>
 </html>
